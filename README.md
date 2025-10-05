@@ -26,4 +26,4 @@ This is a collection of tools for running chatterbox-tts locally for the purpose
 
 ## Other notes
 
-- This server is written specifically to serve my fork of [AbsolutePhoenix's DBVO pack builder](https://github.com/AbsolutePhoenix/DBVO_Pack_Builder) which uses it to generate dialogue. (link to that fork coming soon)
+- This server is written specifically to serve my fork of [AbsolutePhoenix's DBVO pack builder](https://github.com/AbsolutePhoenix/DBVO_Pack_Builder) which uses it to generate dialogue. You can download that from [here](https://github.com/ARoese/DBVO_Pack_Builder)
