@@ -10,11 +10,11 @@ import shutil
 
 # Automatically detect the best available device
 if torch.cuda.is_available():
-    device = "cuda"
+    device = torch.device("cuda")
 elif torch.backends.mps.is_available():
-    device = "mps"
+    device = torch.device("mps")
 else:
-    device = "cpu"
+    device = torch.device("cpu")
 
 print(f"Using device: {device}")
 
@@ -27,7 +27,14 @@ print("Loading model...")
 if(args.l is not None and args.l):
     model = ChatterboxMultilingualTTS.from_pretrained(device=device)
     def generate_wav(dialogue, exaggeration, cfg_weight, temperature):
-        return model.generate(dialogue, language_id=args.l, audio_prompt_path=ref_audio, exaggeration=exaggeration, cfg_weight=cfg_weight, temperature=temperature)
+        return model.generate(
+            dialogue, 
+            language_id=args.l, # type: ignore
+            audio_prompt_path=ref_audio, 
+            exaggeration=exaggeration, 
+            cfg_weight=cfg_weight, 
+            temperature=temperature
+        )
     if(args.l not in model.get_supported_languages().keys()):
         print(args.l, "is not a supported language. Supported languages are:")
         print(model.get_supported_languages())
@@ -37,7 +44,13 @@ if(args.l is not None and args.l):
 else:
     model = ChatterboxTTS.from_pretrained(device=device)
     def generate_wav(dialogue, exaggeration, cfg_weight, temperature):
-        return model.generate(dialogue, audio_prompt_path=ref_audio, exaggeration=exaggeration, cfg_weight=cfg_weight, temperature=temperature)
+        return model.generate(
+            dialogue, 
+            audio_prompt_path=ref_audio, 
+            exaggeration=exaggeration, 
+            cfg_weight=cfg_weight, 
+            temperature=temperature
+        ) # type: ignore
 
 print("Model loaded")
 
@@ -61,7 +74,7 @@ while(True):
             continue
     wav = generate_wav(dialogue, exaggeration, cfg_weight, temperature)        
     with NamedTemporaryFile(delete=False, suffix='.wav') as tmpWav:
-        ta.save(tmpWav, wav, model.sr, format="wav", bits_per_sample=16)
+        ta.save(tmpWav.name, wav, model.sr, format="wav", bits_per_sample=16)
         tmpWav.flush()
         playsound.playsound(tmpWav.name, block=True)
         shutil.move(tmpWav.name, "voiceToy_last_output.wav")

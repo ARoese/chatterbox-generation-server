@@ -16,11 +16,11 @@ from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
 # Automatically detect the best available device
 if torch.cuda.is_available():
-    device = "cuda"
+    device = torch.device("cuda")
 elif torch.backends.mps.is_available():
-    device = "mps"
+    device = torch.device("mps")
 else:
-    device = "cpu"
+    device = torch.device("cpu")
 
 print(f"Using device: {device}")
 
@@ -39,12 +39,12 @@ args = parser.parse_args()
 
 subMap: dict[str,str] = {}
 if args.m is not None:
-    def handle_line(l: str) -> dict:
+    def handle_line(l: str) -> tuple[str,str]:
         pair = l.strip().split("||")
         if len(pair) != 2 or not bool(pair[0]) or not bool(pair[0]):
             raise ValueError(f"substitution file line '{l}' is not valid")
         
-        return tuple(map(str.strip, pair))
+        return pair[0].strip(), pair[1].strip()
     with open(args.m, 'r') as mf:
         subMap = dict(map(handle_line, mf.readlines()))
     
@@ -97,7 +97,7 @@ def recv_all_fixed_size(sock: socket.socket, expected_len: int):
         while len(data) < expected_len:
             packet = sock.recv(expected_len - len(data))
             if not packet:
-                return None  # Connection closed
+                raise ConnectionError(f"connection closed while reading {expected_len} bytes")
             data += packet
         return data
 
@@ -177,12 +177,12 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 print(f"Connected by {addr}")
                 if(generations > MODEL_REFRESH_INTERVAL and MODEL_REFRESH_INTERVAL > 0):
                     print("Reloading model to refresh performance")
-                    del model
-                    del generate_wav
+                    del model #type: ignore
+                    del generate_wav #type: ignore
                     gc.collect()
                     model, generate_wav = load_model()
                     generations = 0
-                handle_request(conn, generate_wav)
+                handle_request(conn, generate_wav) #type: ignore
                 generations += 1
         except KeyboardInterrupt:
             print("exiting")
