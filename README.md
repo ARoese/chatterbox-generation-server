@@ -17,6 +17,8 @@ This is a collection of tools for running chatterbox-tts locally for the purpose
     - replies with the raw wav data
   - supports generation using the multilingual model, but the language is not configurable per-request. Use the `-l LANG` parameter similar to voiceToy.py.
   - use `-p PORT` to configure what port it listens on
+  - use `--convert_numbers` to convert numbers like "10" to the word equivalent like "ten". Sometimes, the models struggle to come up with the right pronunciation of the numeric strings, or when using the multilingual model for accents, will speak the numbers in the wrong language. This fixes that.
+  - use `-m` to provide a mappings file. This is meant for replacing certain words with phonetic equivalents to aid with pronunciation. For example, you could add a line `gif||jif` that makes "gif" be pronounced explicitly with a j sound. Replacements are case-insensitive
 
 ## Environment setup
 1. Make a clean python venv. I use pyenv with the virtualenv plugin for this.
