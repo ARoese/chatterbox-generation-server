@@ -1,0 +1,21 @@
+volumes:
+  models:
+
+services:
+  chatterbox-gen-server:
+    build: .
+    volumes:
+      - "./outputs:/home/ubuntu/workspace/outputs"
+      - "./ref_files:/home/ubuntu/workspace/ref_files"
+      - "./shared:/home/ubuntu/workspace/shared"
+      - "models:/home/ubuntu/.cache/huggingface"
+    ports:
+      - "9005:9005"
+    user: "1000:1000"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              capabilities: ["gpu"]
+              count: all

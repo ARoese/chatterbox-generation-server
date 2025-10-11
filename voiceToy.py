@@ -7,6 +7,7 @@ import playsound
 from tempfile import NamedTemporaryFile
 import argparse
 import shutil
+import os
 
 # Automatically detect the best available device
 if torch.cuda.is_available():
@@ -21,6 +22,7 @@ print(f"Using device: {device}")
 parser = argparse.ArgumentParser(description="Generate voicelines using reference audio")
 parser.add_argument("reference_wav")
 parser.add_argument("-l", default=None)
+parser.add_argument("-q", action="store_true", help="Do not try to play audio; only generate a wav. Use this if using docker.")
 args = parser.parse_args()
 
 print("Loading model...")
@@ -76,5 +78,7 @@ while(True):
     with NamedTemporaryFile(delete=False, suffix='.wav') as tmpWav:
         ta.save(tmpWav.name, wav, model.sr, format="wav", bits_per_sample=16)
         tmpWav.flush()
-        playsound.playsound(tmpWav.name, block=True)
-        shutil.move(tmpWav.name, "voiceToy_last_output.wav")
+        if not args.q:
+            playsound.playsound(tmpWav.name, block=True)
+        os.makedirs("outputs/", exist_ok=True)
+        shutil.move(tmpWav.name, "outputs/voiceToy_last_output.wav")

@@ -26,6 +26,13 @@ This is a collection of tools for running chatterbox-tts locally for the purpose
 2. activate your venv
 3. `pip install -r requirements.txt`
 
+## Running with docker
+run the docker container using the following commands:
+`docker compose build`
+`docker compose run --remove-orphans chatterbox-gen-server` 
+
+This will drop you into a shell with the correct environment to run chatterboxGenServer.py and voiceToy.py. Port 9005 is forwarded by default, and all system gpus are made available to the container if possible. The models will be downloaded initially, but will be cached in a docker volume so they are availalbe on future runs. To change which port is forwarded, set it in `docker-compose.yml`.
+
 ## Other notes
 
 - This server is written specifically to serve my fork of [AbsolutePhoenix's DBVO pack builder](https://github.com/AbsolutePhoenix/DBVO_Pack_Builder) which uses it to generate dialogue. You can download that from [here](https://github.com/ARoese/DBVO_Pack_Builder)
