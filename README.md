@@ -36,3 +36,5 @@ This will drop you into a shell with the correct environment to run chatterboxGe
 ## Other notes
 
 - This server is written specifically to serve my fork of [AbsolutePhoenix's DBVO pack builder](https://github.com/AbsolutePhoenix/DBVO_Pack_Builder) which uses it to generate dialogue. You can download that from [here](https://github.com/ARoese/DBVO_Pack_Builder)
+
+- You should avoid using genericly-named files as references for `chatterboxGenServer.py`. The references are saved and cached server-side using the leaf file name only in `ref_files`. For example, `character1/sample.wav` and `character2/sample.wav` are considered to be the same file. Subsequent generations offering `character2/sample.wav`, will use `character1/sample.wav` if it was sent first. This can be resolved client-side by offering a file named with its hash, but that is not currently implemented. 
