@@ -23,13 +23,23 @@ import whisper_timestamped as wt
 
 # Automatically detect the best available device
 if torch.cuda.is_available():
-    device = torch.device("cuda")
+    cb_device = torch.device("cuda")
+    whisper_device = torch.device("cuda")
 elif torch.backends.mps.is_available():
-    device = torch.device("mps")
+    cb_device = torch.device("mps")
+    whisper_device = torch.device("mps")
 else:
-    device = torch.device("cpu")
+    cb_device = torch.device("cpu")
+    whisper_device = torch.device("cpu")
 
-print(f"Using device: {device}")
+# can be 'cuda', 'cpu', or 'mps'
+DEVICE_OVERRIDE = None
+if DEVICE_OVERRIDE is not None:
+    cb_device = DEVICE_OVERRIDE
+    whisper_device = DEVICE_OVERRIDE
+
+print(f"Using device {cb_device} for chatterbox")
+print(f"Using device {whisper_device} for chatterbox")
 
 SHORT_DIALOGUE_PREFIXES = [
     "Green eggs and ham.",
@@ -140,11 +150,11 @@ def try_generate_wav(generate_wav: Callable[[str], Tensor], sample_rate: int, di
         
 
 print("Loading whisper model...")
-whisper_model = wt.load_model("medium", device)
+whisper_model = wt.load_model("medium", whisper_device)
 print("Loading chatterbox model...")
 def load_model():
     if(args.l is not None and args.l):
-        model = ChatterboxMultilingualTTS.from_pretrained(device=device)
+        model = ChatterboxMultilingualTTS.from_pretrained(device=cb_device)
         def generate_wav(dialogue, ref_audio, exaggeration, cfg_weight, temperature):
             return model.generate(dialogue, language_id=args.l, audio_prompt_path=ref_audio, exaggeration=exaggeration, cfg_weight=cfg_weight, temperature=temperature)
         if(args.l not in model.get_supported_languages().keys()):
@@ -154,7 +164,7 @@ def load_model():
         else:
             print("Using language:", model.get_supported_languages()[args.l])
     else:
-        model = ChatterboxTTS.from_pretrained(device=device)
+        model = ChatterboxTTS.from_pretrained(device=cb_device)
         def generate_wav(dialogue, ref_audio, exaggeration, cfg_weight, temperature):
             return model.generate(dialogue, audio_prompt_path=ref_audio, exaggeration=exaggeration, cfg_weight=cfg_weight, temperature=temperature)
         
