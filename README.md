@@ -38,3 +38,20 @@ This will drop you into a shell with the correct environment to run chatterboxGe
 - This server is written specifically to serve my fork of [AbsolutePhoenix's DBVO pack builder](https://github.com/AbsolutePhoenix/DBVO_Pack_Builder) which uses it to generate dialogue. You can download that from [here](https://github.com/ARoese/DBVO_Pack_Builder)
 
 - You should avoid using genericly-named files as references for `chatterboxGenServer.py`. The references are saved and cached server-side using the leaf file name only in `ref_files`. For example, `character1/sample.wav` and `character2/sample.wav` are considered to be the same file. Subsequent generations offering `character2/sample.wav`, will use `character1/sample.wav` if it was sent first. This can be resolved client-side by offering a file named with its hash, but that is not currently implemented. 
+
+## Implementation notes
+Chatterbox struggles to generate short dialogue lines. Often, they devolve into groaning, consist of rapid and random phonemes, or are otherwise broken. This problem is rectified simply by never generating a short voiceline.
+
+Here, a "short" voiceline is one that consists of 4 or fewer words, and is 10 or less characters (excluding punctuation)
+
+When a short voiceline is requested for generation, it is handled specially. First, a prefix phrase is selected and added so that the dialogue that actually gets generated is suitably long enough. For example:
+Requested: George. (too short. Will just be blabbering)
+Generated: Green eggs and ham. George. (long enough to be generated normally)
+
+Having a random phrase prefixing the spoken dialogue is undesirable, so the prefix phrase is detected using whisper_timestamped. This takes the generated audio and produces a transcription of what was said to sub-second precision. First, the presence of the prefix phrase is verified--if it isn't detected, then generation is repeated until it is. Then, the generation is cut starting from the end of the final word of the prefix phrase onwards. (the prefix phrase is cut out of the audio) To prevent breaths and the final portions of phonemes from the prefix phrase from being audible in the resulting dialogue, the audio clip is finally run through torchaudio's functional VAD transform. This removes subtle noises up until the beginning of the next word. (the word that should actually have been spoken) So far, this VAD step is actually the worst part of the process. The VAD step is repeated multiple times with different parameters if the result is bad, but some poor dialogue still squeezes through. 
+
+Most common issues right now:
+- The first letter/phoneme of a dialogue is cut off. Probably because the VAD does not have a quick enough attack in those cases.
+- A subtle popping sound at the beginning of audio. This is probably trailing noise from the prefix phrase sticking around, or the cut audio not starting on a zero-crossing and causing impulse artifacts. (This is mostly solved by applying a 100ms linear fade-in to the resultant clip. You can probably still hear it if you focus.)
+
+tl;dr: Short dialogue (bad) -> long dialogue with extra filler words (fine) -> cut out the filler words using a separate model -> short dialogue audio (woohoo!)
