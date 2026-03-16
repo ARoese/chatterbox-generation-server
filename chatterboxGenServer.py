@@ -15,6 +15,7 @@ from random import randint
 from torch import Tensor
 import torchaudio as ta
 import torch
+from torch.nn import functional as TF
 from chatterbox.tts import ChatterboxTTS
 from chatterbox.mtl_tts import ChatterboxMultilingualTTS
 
@@ -119,7 +120,10 @@ def try_generate_wav(generate_wav: Callable[[str], Tensor], sample_rate: int, di
     step = 0.5
     vad_dialogue = None # prevent potentially unbound warning
     while trigger_level > 1.0:
-        vad_dialogue = ta.functional.vad(generated_dialogue[0], sample_rate, trigger_level=trigger_level, trigger_time=0.1)
+        pad_samples_count = int(sample_rate * 0.4)
+        padded = TF.pad(generated_dialogue[0], (pad_samples_count,0), "constant", value=0)
+        #vad_dialogue = ta.functional.vad(padded, sample_rate, trigger_level=trigger_level, trigger_time=0.1)
+        vad_dialogue = ta.functional.vad(padded, sample_rate)
         if not vad_dialogue.shape[1]/sample_rate < 0.2:
             break
         trigger_level -= step

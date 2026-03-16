@@ -1,3 +1,5 @@
 *.wav
 .python-version
 __pycache__
+test_samples/outputs/*
+test_samples/samples/*
