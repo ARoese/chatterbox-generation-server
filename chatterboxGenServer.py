@@ -40,7 +40,7 @@ if DEVICE_OVERRIDE is not None:
     whisper_device = DEVICE_OVERRIDE
 
 print(f"Using device {cb_device} for chatterbox")
-print(f"Using device {whisper_device} for chatterbox")
+print(f"Using device {whisper_device} for whisper")
 
 SHORT_DIALOGUE_PREFIXES = [
     "Green eggs and ham.",
